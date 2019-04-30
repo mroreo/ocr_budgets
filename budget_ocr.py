@@ -11,7 +11,7 @@ import imutils
 import os
 import numpy as np
 import uuid
-import json
+import glob as glob
 import pandas as pd
 from imutils import contours
 from pdf2image import convert_from_path
@@ -105,31 +105,35 @@ if __name__ == '__main__':
     
     if RESAVE_DATA:
         pdfImageConversion('{}.pdf'.format(BUDGET))
-    img = cv2.imread('./images/{}/page_3.jpg'.format(BUDGET))
-    contours_dict = identifyBoundingBoxes(img)
     
-    #Check the bounding boxes to see if they make sense
-    resized_img = resizeResolution(img,rgb=True)
-    #cv2.imshow('boundingboxes',drawRedRectangles(resized_img,contours_dict))
-    
-    #Save the train labels. Save the images as a gray scale image
-    grayimg = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
-    grayimg = cv2.threshold(grayimg, 10, 255, cv2.THRESH_BINARY_INV)[1]
-    resized_grayimg = resizeResolution(grayimg,rgb=False)
-    #cv2.imshow('grayscaleimg',resized_grayimg)
-    
+    jpg_files = glob.glob('./images/{}/*.jpg'.format(BUDGET))
     train_ids = []
-    for i in contours_dict:
-        id_key = uuid.uuid4()
-        dim = contours_dict[i]
-        train_img = resized_grayimg[dim[1]:dim[1]+dim[3],dim[0]:dim[0]+dim[2]]
-        #cv2.imshow('image_check',train_img)
-        #cv2.imshow('image_check_bounding_box',drawRedRectangles(resized_img,dim,batch=False))
-        train_img_padded = padImgZeros(train_img)
-        train_img_bounded = drawRedRectangles(resized_img,dim,batch=False)
-        cv2.imwrite('./train_labels/{}.jpg'.format(id_key), train_img_padded, [int(cv2.IMWRITE_JPEG_QUALITY), 90])
-        cv2.imwrite('./train_labels/image_boxed/{}_bounding_box.jpg'.format(id_key), train_img_bounded, [int(cv2.IMWRITE_JPEG_QUALITY), 90])
-        train_ids.append(id_key)
+    for jpg in jpg_files:
+        img = cv2.imread(jpg)
+        contours_dict = identifyBoundingBoxes(img)
         
+        #Check the bounding boxes to see if they make sense
+        resized_img = resizeResolution(img,rgb=True)
+        #cv2.imshow('boundingboxes',drawRedRectangles(resized_img,contours_dict))
+        
+        #Save the train labels. Save the images as a gray scale image
+        grayimg = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
+        grayimg = cv2.threshold(grayimg, 10, 255, cv2.THRESH_BINARY_INV)[1]
+        resized_grayimg = resizeResolution(grayimg,rgb=False)
+        #cv2.imshow('grayscaleimg',resized_grayimg)
+        
+        
+        for i in contours_dict:
+            id_key = uuid.uuid4()
+            dim = contours_dict[i]
+            train_img = resized_grayimg[dim[1]:dim[1]+dim[3],dim[0]:dim[0]+dim[2]]
+            #cv2.imshow('image_check',train_img)
+            #cv2.imshow('image_check_bounding_box',drawRedRectangles(resized_img,dim,batch=False))
+            train_img_padded = padImgZeros(train_img)
+            train_img_bounded = drawRedRectangles(resized_img,dim,batch=False)
+            cv2.imwrite('./train_labels/{}.jpg'.format(id_key), train_img_padded, [int(cv2.IMWRITE_JPEG_QUALITY), 90])
+            cv2.imwrite('./train_labels/image_boxed/{}_bounding_box.jpg'.format(id_key), train_img_bounded, [int(cv2.IMWRITE_JPEG_QUALITY), 90])
+            train_ids.append(id_key)
+            
     train_ids_df = pd.DataFrame({'id':train_ids})
     train_ids_df.to_csv('target.csv',index=False)
