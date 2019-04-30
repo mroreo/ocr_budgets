@@ -1,6 +1,6 @@
 *.jpg
 *.csv
-images/*
-!images/.gitkeep
+images/weehawken_annual_budget_2018/*
+!images/weehawken_annual_budget_2018/.gitkeep
 train_labels/image_boxed/*
 !train_labels/image_boxed/.gitkeep
