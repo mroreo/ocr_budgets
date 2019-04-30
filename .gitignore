@@ -1,2 +1,6 @@
 *.jpg
 *.csv
+images/*
+!images/.gitkeep
+train_labels/image_boxed/*
+!train_labels/image_boxed/.gitkeep
